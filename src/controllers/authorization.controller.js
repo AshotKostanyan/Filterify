@@ -2,15 +2,13 @@ import {pool} from "../pool.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import {errorMessages} from "../config/error-messages.js";
+import * as validator from "../validators/index.js";
 
 export class AuthorizationController {
-    constructor() {
-    }
-
     static async login(req, res) {
-        // TODO add validation for login credentials
         try {
-            const { email, password } = req.body;
+            const email = validator.validateEmail(req.body.email);
+            const password = validator.validatePassword(req.body.password);
 
             const [[user]] = await pool.query(`
                 select *
@@ -46,9 +44,11 @@ export class AuthorizationController {
 
 
     static async register(req, res) {
-        // TODO add validators for all inputs
         try {
-            const { name, email, password } = req.body;
+            const email = validator.validateEmail(req.body.email);
+            const password = validator.validatePassword(req.body.password);
+            const name = validator.validateEmail(req.body.name);
+
 
             const [[existingUser]] = await pool.query(`
                 select * 
