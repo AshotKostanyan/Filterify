@@ -1,0 +1,67 @@
+name: Filterify
+services:
+  api:
+    build:
+      context: ../docker2
+      dockerfile: Dockerfile
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${EXT_API_PORT}:${PORT}
+    restart: always
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+    command: ["node", "src/index.js"]
+    networks:
+      - net
+
+  migrate:
+    build:
+      context: ../docker2
+      dockerfile: Dockerfile_migrate
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - net
+
+  mysql-db:
+    container_name: feed-manager-db
+    image: mysql:8.0.40
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 127.0.0.1:${EXT_DB_PORT}:${DB_PORT}
+    restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - net
+
+volumes:
+  db_data:
+
+networks:
+  net:
+    driver: bridge
