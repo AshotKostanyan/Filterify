@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(mainMiddleware);
 app.use(session({
-    secret: 'keyboard cat', // set in .env
+    secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: true,
 }));
